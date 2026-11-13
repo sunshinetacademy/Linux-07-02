@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المحاضرة 2 — المستخدمون والصلاحيات | Sunshine T Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0d1117; --card:#161b22; --card2:#1c2333;
+    --accent:#00d4aa; --accent2:#ff6b35; --purple:#8b5cf6;
+    --text:#e6edf3; --muted:#8b949e; --warn:#ffd60a; --blue:#4da3ff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Cairo',sans-serif}
+  body{background:var(--bg);color:var(--text);line-height:1.9}
+  .container{max-width:1100px;margin:0 auto;padding:24px}
+
+  /* ===== Progress Bar ===== */
+  .progress-bar{display:flex;gap:8px;justify-content:center;padding:14px;flex-wrap:wrap;
+    background:#0a0e14;border-bottom:1px solid #30363d}
+  .pb{width:120px;height:6px;border-radius:6px;background:#30363d;position:relative;cursor:default}
+  .pb.done{background:var(--accent)}
+  .pb.current{background:linear-gradient(90deg,var(--accent2),var(--warn));box-shadow:0 0 12px var(--accent2)}
+  .pb span{position:absolute;top:10px;right:50%;transform:translateX(50%);font-size:.65rem;color:var(--muted);white-space:nowrap}
+
+  /* ===== Hero ===== */
+  header{background:linear-gradient(135deg,#2c1010 0%,#4a1a0a 50%,#7a3b10 100%);
+    padding:50px 20px;text-align:center;border-bottom:3px solid var(--accent2)}
+  header .logo{font-size:15px;letter-spacing:2px;color:var(--accent);font-weight:700}
+  header h1{font-size:2.5rem;font-weight:900;margin:12px 0}
+  header h1 span{color:var(--warn)}
+  header .sub{color:#d8c4b0;font-size:1.1rem}
+  .badge-row{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+  .badge{background:rgba(0,212,170,.12);border:1px solid var(--accent);color:var(--accent);
+    padding:6px 18px;border-radius:50px;font-size:.85rem;font-weight:600}
+  .badge.orange{border-color:var(--accent2);color:var(--accent2);background:rgba(255,107,53,.1)}
+  .badge.purple{border-color:var(--purple);color:var(--purple);background:rgba(139,92,246,.12)}
+
+  /* ===== Sections ===== */
+  section{margin:36px 0}
+  h2{font-size:1.7rem;font-weight:900;margin-bottom:18px;display:flex;align-items:center;gap:12px}
+  h2 .num{background:var(--accent2);color:#000;min-width:42px;height:42px;border-radius:12px;
+    display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:900}
+  h3{color:var(--accent);font-size:1.2rem;margin:16px 0 8px}
+
+  .card{background:var(--card);border:1px solid #30363d;border-radius:16px;padding:24px;margin-bottom:18px}
+  .card.orange{border-right:4px solid var(--accent2)}
+  .card.green{border-right:4px solid var(--accent)}
+  .card.yellow{border-right:4px solid var(--warn)}
+  .card.purple{border-right:4px solid var(--purple)}
+  .card.blue{border-right:4px solid var(--blue)}
+
+  /* ===== Terminal ===== */
+  .terminal{background:#0a0e14;border:1px solid #30363d;border-radius:12px;overflow:hidden;margin:16px 0}
+  .term-bar{background:#21262d;padding:8px 16px;display:flex;gap:8px;align-items:center}
+  .dot{width:12px;height:12px;border-radius:50%}
+  .red{background:#ff5f56}.yel{background:#ffbd2e}.grn{background:#27c93f}
+  .term-title{color:var(--muted);font-size:.8rem;margin-right:10px;font-family:'JetBrains Mono',monospace}
+  .term-body{padding:18px;font-family:'JetBrains Mono',monospace;font-size:.9rem;direction:ltr;text-align:left}
+  .prompt{color:#27c93f}
+  .prompt.root{color:#ff5f56}
+  .cmd{color:#e6edf3}
+  .comment{color:#8b949e}
+  .output{color:#79c0ff}
+  .error{color:#ff7b72}
+  .term-body .line{margin-bottom:6px}
+
+  /* ===== Tables ===== */
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th{background:var(--card2);color:var(--accent);padding:12px;font-size:.95rem}
+  td{padding:11px 14px;border-bottom:1px solid #30363d;font-size:.93rem}
+  tr:hover td{background:rgba(0,212,170,.05)}
+  code.inline{background:#21262d;color:var(--accent);padding:2px 8px;border-radius:6px;
+    font-family:'JetBrains Mono',monospace;font-size:.85rem;direction:ltr;display:inline-block}
+
+  /* ===== Callouts ===== */
+  .callout{border-radius:12px;padding:18px 20px;margin:16px 0;display:flex;gap:14px;align-items:flex-start}
+  .callout .icon{font-size:1.6rem}
+  .callout.warn{background:rgba(255,214,10,.08);border:1px solid rgba(255,214,10,.4)}
+  .callout.info{background:rgba(77,163,255,.08);border:1px solid rgba(77,163,255,.4)}
+  .callout.success{background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.4)}
+  .callout.danger{background:rgba(255,95,86,.08);border:1px solid rgba(255,95,86,.4)}
+
+  /* ===== Objectives ===== */
+  .objectives{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:16px 0}
+  .obj{background:var(--card2);border-radius:12px;padding:18px;text-align:center;border-top:3px solid var(--accent2)}
+  .obj .emoji{font-size:2rem}
+  .obj p{font-size:.9rem;margin-top:8px}
+
+  /* ===== Steps ===== */
+  .step{display:flex;gap:16px;margin-bottom:18px;align-items:flex-start}
+  .step .n{background:var(--purple);color:#fff;min-width:36px;height:36px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:900}
+  .step .content h4{color:var(--accent2)}
+  .step .content p{font-size:.95rem;color:var(--muted)}
+
+  /* ===== Permission Visualizer ===== */
+  .perm-visual{display:flex;flex-direction:column;gap:14px;margin:18px 0}
+  .perm-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .perm-block{background:var(--card2);border-radius:12px;padding:14px 18px;text-align:center;min-width:110px;border:1px solid #30363d}
+  .perm-block.owner{border-top:3px solid var(--accent)}
+  .perm-block.group{border-top:3px solid var(--warn)}
+  .perm-block.others{border-top:3px solid var(--purple)}
+  .perm-block .who{font-weight:900;font-size:.85rem}
+  .perm-block.owner .who{color:var(--accent)}
+  .perm-block.group .who{color:var(--warn)}
+  .perm-block.others .who{color:var(--purple)}
+  .perm-block .flags{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:700;direction:ltr;letter-spacing:3px;margin-top:6px}
+  .perm-legend{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0}
+  .pl{display:flex;align-items:center;gap:6px;font-size:.9rem}
+  .pl b{font-family:'JetBrains Mono',monospace}
+  .pl.r b{color:var(--accent)}.pl.w b{color:var(--warn)}.pl.x b{color:var(--accent2)}
+
+  /* ===== Interactive Quiz ===== */
+  .quiz{background:var(--card2);border-radius:12px;padding:18px;margin:14px 0;cursor:pointer;
+    border:1px solid #30363d;transition:.3s}
+  .quiz:hover{border-color:var(--accent)}
+  .quiz .q{font-weight:700}
+  .quiz .options{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .quiz button{background:#21262d;border:1px solid #30363d;color:var(--text);padding:8px 20px;
+    border-radius:8px;cursor:pointer;font-family:'Cairo';font-size:.9rem;transition:.3s}
+  .quiz button:hover{border-color:var(--accent);color:var(--accent)}
+  .quiz button.correct{background:rgba(0,212,170,.2);border-color:var(--accent);color:var(--accent)}
+  .quiz button.wrong{background:rgba(255,95,86,.2);border-color:#ff5f56;color:#ff7b72}
+  .quiz .feedback{margin-top:10px;font-size:.9rem;display:none}
+
+  /* ===== Analogy Cards ===== */
+  .analogy{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin:16px 0}
+  .an{background:var(--card2);border-radius:12px;padding:18px;border:1px dashed #30363d}
+  .an .icon{font-size:2rem}
+  .an h4{color:var(--accent);margin:8px 0 6px}
+  .an p{font-size:.9rem;color:var(--muted)}
+
+  /* ===== Recap ===== */
+  .recap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .recap{background:var(--card2);border-radius:12px;padding:16px;border-right:3px solid var(--accent)}
+  .recap b{color:var(--accent)}
+
+  footer{text-align:center;padding:30px;color:var(--muted);border-top:1px solid #30363d;margin-top:40px}
+  footer .brand{color:var(--accent);font-weight:900}
+
+  /* ===== Game Card ===== */
+  .game{background:linear-gradient(135deg,#1a1033 0%,#2d1b4e 100%);border:1px solid var(--purple);
+    border-radius:16px;padding:26px;margin:20px 0}
+  .game h3{color:var(--purple)}
+</style>
+</head>
+<body>
+
+<!-- شريط تقدم الكورس -->
+<div class="progress-bar">
+  <div class="pb done"><span>L1: Terminal ✓</span></div>
+  <div class="pb current"><span>L2: الصلاحيات ← أنت هنا</span></div>
+  <div class="pb"><span>L3: الشبكات</span></div>
+  <div class="pb"><span>L4: Nmap</span></div>
+  <div class="pb"><span>L5: Wireshark</span></div>
+  <div class="pb"><span>L6: كلمات السر</span></div>
+  <div class="pb"><span>L7: المشروع 🏆</span></div>
+</div>
+
+<header>
+  <div class="logo">☀️ SUNSHINE T ACADEMY — LEVEL 3</div>
+  <h1>المحاضرة 2: <span>المستخدمون والصلاحيات</span> 🔐</h1>
+  <div class="sub">إنت مين؟ وإيه اللي مسموحلك تعمله؟ — أساس الأمان في عالم Linux</div>
+  <div class="badge-row">
+    <div class="badge">⏱️ 120 دقيقة</div>
+    <div class="badge orange">👥 أعمار 12–15</div>
+    <div class="badge purple">🎮 فيها لعبة اختراق مصغرة!</div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ========== أهداف المحاضرة ========== -->
+<section>
+  <h2><span class="num">🎯</span> أهداف المحاضرة</h2>
+  <div class="objectives">
+    <div class="obj"><div class="emoji">👑</div><p>يفهم الفرق بين المستخدم العادي و root وليه ده مهم أمنيًا</p></div>
+    <div class="obj"><div class="emoji">🔓</div><p>يقرأ صلاحيات الملفات <code class="inline">rwx</code> ويفك شفرتها</p></div>
+    <div class="obj"><div class="emoji">🛠️</div><p>يستخدم <code class="inline">chmod</code> و<code class="inline">sudo</code> بثقة</p></div>
+    <div class="obj"><div class="emoji">🕵️</div><p>يفكر كمحلل أمني: "مين يقدر يوصل للبيانات دي؟"</p></div>
+  </div>
+</section>
+
+<!-- ========== 1: القصة ========== -->
+<section>
+  <h2><span class="num">1</span> افتتاحية: مشكلة المدرسة 😅</h2>
+  <div class="card orange">
+    <p>تخيلوا مدرسة فيها <b>ممر واحد لكل حاجة</b>:</p>
+    <ul style="margin:10px 24px">
+      <li>🚪 أي حد يدخل أي فصل — حتى الفصول اللي مش بتاعته!</li>
+      <li>🗄️ أي طالب يقدر يفتح درجات الزمالك ويغيرها!</li>
+      <li>💰 غرفة الأوقاف مفتوحة للكل!</li>
+    </ul>
+    <p style="margin-top:10px"><b>كارثة، صح؟</b> 😱<br>
+    ده بالظبط اللي هيحصل لو كل مستخدمين الكمبيوتر عندهم صلاحيات كاملة! وعشان كده أي نظام حقيقي (Windows وLinux والموبايل بتاعك) فيه <b>مستخدمين</b> و<b>صلاحيات</b> — ودي أول وأهم حاجة بتقفل بيها الثغرات.</p>
+  </div>
+  <div class="callout info">
+    <div class="icon">💡</div>
+    <div><b>ربط بمجال الأمن السيبراني:</b> المبدأ اللي بنشتغل بيه اسمه <b>Least Privilege (أقل صلاحية ممكنة)</b> — كل حد ياخد بس الصلاحيات اللي يحتاجها لشغله، ولا حاجة زيادة. المبدأ ده بيستخدمه كل محلل أمني ومهندس شبكات في العالم.</div>
+  </div>
+</section>
+
+<!-- ========== 2: المستخدمون ========== -->
+<section>
+  <h2><span class="num">2</span> مين اللي جوه النظام؟ — عالم المستخدمين</h2>
+
+  <div class="analogy">
+    <div class="an">
+      <div class="icon">👤</div>
+      <h4>المستخدم العادي</h4>
+      <p>زي طالب في المدرسة 🎒 — يقدر يلعب في "المكتبة بتاعته" (الـ Home folder)، ينشئ ملفاته، بس <b>مش يقدر يغير حاجة في النظام كله</b> ولا في ملفات زمايله.</p>
+    </div>
+    <div class="an">
+      <div class="icon">👑</div>
+      <h4>root — الملك</h4>
+      <p>زي مدير المدرسة 🏢 — <b>يقدر يعمل أي حاجة</b>: يغير أي ملف، يمسح أي حاجة، يركب برامج، يغير كلمات السر. اسمه في Linux هو <b>root</b> ورمزه في Terminal هو <code class="inline">#</code>.</p>
+    </div>
+    <div class="an">
+      <div class="icon">🔑</div>
+      <h4>sudo — مفتاح الملك المؤقت</h4>
+      <p>معناها <b>S</b>uper <b>U</b>ser <b>DO</b> = "نفّذ الأمر ده بصلاحيات الملك لثواني". زي ما تقول للمدير: "محتاج مفاتيح غرفة السيرفر 5 دقايق بس" — والمدير بيبص فيك الأول! 👀</p>
+    </div>
+  </div>
+
+  <div class="terminal"><div class="term-bar"><div class="dot red"></div><div class="dot yel"></div><div class="dot grn"></div><span class="term-title">الفرق اللي هتشوفه بعينك</span></div>
+    <div class="term-body">
+      <div class="line"><span class="prompt">kali@sunshine:~$</span> <span class="comment">← $ يعني مستخدم عادي (كالي)</span></div>
+      <div class="line"><span class="prompt root">root@sunshine:~#</span> <span class="comment">← # يعني الملك نفسه (root) — خطر وقوة!</span></div>
+    </div>
+  </div>
+
+  <div class="callout danger">
+    <div class="icon">🚨</div>
+    <div><b>قصة حقيقية من قواعد الأمان:</b> لو شغلت Terminal بصلاحيات root وخطيت في أمر واحد زي <code class="inline">rm -rf /</code> — <b>هتمسح النظام كله ولا رجع فيه حاجة!</b><br>
+    علشان كده المحترفين بيقعدوا مستخدمين عاديين 99% من الوقت، وبيستخدموا <code class="inline">sudo</code> بس لما يحتاجوه فعلًا. <b>القوة الكبيرة = مسؤولية كبيرة</b> 🕷️</div>
+  </div>
+
+  <div class="terminal"><div class="term-bar"><div class="dot red"></div><div class="dot yel"></div><div class="dot grn"></div><span class="term-title">kali@sunshine — جرب بنفسك</span></div>
+    <div class="term-body">
+      <div class="line"><span class="prompt">kali@sunshine:~$</span> <span class="cmd">whoami</span></div>
+      <div class="line"><span class="output">kali</span></div>
+      <div class="line"><span class="prompt">kali@sunshine:~$</span> <span class="cmd">sudo whoami</span></div>
+      <div class="line"><span class="comment">[sudo] password for kali: </span></div>
+      <div class="line"><span class="output">root</span></div>
+      <div class="line"><span class="comment"># نفسك! بس بصلاحيات الملك 👑</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 3: الصلاحيات ========== -->
+<section>
+  <h2><span class="num">3</span> فك شفرة الصلاحيات — <code class="inline">rwx</code> 🕵️</h2>
+
+  <div class="card green">
+    <p>كل ملف في Linux ليه <b>3 سلاسل صلاحيات</b> — تشبه الأقسام في مدرسة:</p>
+    <div class="perm-visual">
+      <div class="perm-row">
+        <div class="perm-block owner"><div class="who">👤 صاحب الملف<br>(Owner)</div><div class="flags">r w x</div></div>
+        <div class="perm-block group"><div class="who">👥 المجموعة<br>(Group)</div><div class="flags">r - x</div></div>
+        <div class="perm-block others"><div class="who">🌍 الباقين كلهم<br>(Others)</div><div class="flags">r - -</div></div>
+      </div>
+    </div>
+    <div class="perm-legend">
+      <div class="pl r"><b>r</b> = read (قراءة 📖)</div>
+      <div class="pl w"><b>w</b> = write (كتابة ✏️)</div>
+      <div class="pl x"><b>x</b> = execute (تنفيذ ▶️)</div>
+      <div class="pl"><b style="color:var(--muted)">-</b> = ممنوع 🚫</div>
+    </div>
+    <p>مثال حي: <code class="inline">rwxr-x---</code> معناه:</p>
+    <table>
+      <tr><th>الجهة</th><th>الصلاحية</th><th>بالعربي</th></tr>
+      <tr><td>الصاحب</td><td>rwx</td><td>يقرأ ويكتب ويشغل — كل حاجة ✅</td></tr>
+      <tr><td>المجموعة</td><td>r-x</td><td>يقرأ ويشغل بس — <b>مش يقدر يعدل</b> ⚠️</td></tr>
+      <tr><td>الباقين</td><td>---</td><td>لا حاجة خالص — الملف مستخبي عنهم 🚫</td></tr>
+    </table>
+  </div>
+
+  <h3>🔎 نقراها بعيننا — <code class="inline">ls -l</code></h3>
+  <div class="terminal"><div class="term-bar"><div class="dot red"></div><div class="dot yel"></div><div class="dot grn"></div><span class="term-title">kali@sunshine</span></div>
+    <div class="term-body">
+      <div class="line"><span class="prompt">kali@sunshine:~$</span> <span class="cmd">ls -l secret.txt</span></div>
+      <div class="line"><span class="output">-rw-r--r-- 1 kali kali 24 Oct 8 11:30 secret.txt</span></div>
+      <div class="line"><span class="comment">#            └──┬──┘ └─┬─┘ └─┬─┘</span></div>
+      <div class="line"><span class="comment">#        الصلاحيات  الصاحب  المجموعة</span></div>
+      <div class="line"><span class="comment"># أول حرف: - يعني ملف، d يعني مجلد (directory)</span></div>
+    </div>
+  </div>
+
+  <div class="card yellow">
+    <h3>🧮 الصلاحيات بالأرقام — السر العجيب (Octal)</h3>
+    <p>كل حرف ليه رقم سري:</p>
+    <table>
+      <tr><th>الحرف</th><th>رقمه</th><th>ليه؟</th></tr>
+      <tr><td><code class="inline">r</code> قراءة</td><td><b>4</b></td><td>2²</td></tr>
+      <tr><td><code class="inline">w</code> كتابة</td><td><b>2</b></td><td>2¹</td></tr>
+      <tr><td><code class="inline">x</code> تنفيذ</td><td><b>1</b></td><td>2⁰</td></tr>
+    </table>
+    <p>وبنجمع! أمثلة تفهم بيها كل حاجة:</p>
+    <table>
+      <tr><th>الرمز</th><th>الحساب</th><th>الرقم</th><th>معناه</th></tr>
+      <tr><td>rwx</td><td>4+2+1</td><td><b>7</b></td><td>كل الصلاحيات 👑</td></tr>
+      <tr><td>r-x</td><td>4+0+1</td><td><b>5</b></td><td>قراءة وتنفيذ بس</td></tr>
+      <tr><td>rw-</td><td>4+2+0</td><td><b>6</b></td><td>قراءة وكتابة</td></tr>
+      <tr><td>r--</td><td>4+0+0</td><td><b>4</b></td><td>قراءة فقط 📖</td></tr>
+      <tr><td>---</td><td>0+0+0</td><td><b>0</b></td><td>ممنوع تمامًا 🚫</td></tr>
+    </table>
+    <p>فبكده <code class="inline">chmod 700</code> يعني: <b>7</b> للصاحب (كل حاجة) — <b>0</b> للمجموعة (ولا حاجة) — <b>0</b> للباقين (ولا حاجة) = ملف سري تمامًا! 🤫</p>
+  </div>
+
+  <div class="terminal"><div class="term-bar"><div class="dot red"></div><div class="dot yel"></div><div class="dot grn"></div><span class="term-title">kali@sunshine — chmod بالمثال</span></div>
+    <div class="term-body">
+      <div class="line"><span class="prompt">kali@sunshine:~$</span> <span class="cmd">echo "my diary" &gt; diary.txt</span></div>
+      <div class="line"><span class="prompt">kali@sunshine:~$</span> <span class="cmd">chmod 600 diary.txt</span></div>
+      <div class="line"><span class="comment"># 6 = rw للصاحب | 0 = ممنوع للمجموعة | 0 = ممنوع للباقين</span></div>
+      <div class="line"><span class="prompt">kali@sunshine:~$</span> <span class="cmd">ls -l diary.txt</span></div>
+      <div class="line"><span class="output">-rw------- 1 kali kali 9 Oct 8 11:35 diary.txt</span></div>
+      <div class="line"><span class="comment"># قفلنا الملف! 🔒</span></div>
+      <div class="line"></div>
+      <div class="line"><span class="prompt">kali@sunshine:~$</span> <span class="cmd">chmod +x script.sh</span></div>
+      <div class="line"><span class="comment"># طريقة تانية: +x = "زود صلاحية التنفيذ" على اللي كان موجود</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== 4: لعبة الاختراق ========== -->
+<section>
+  <h2><span class="num">4</span> 🎮 لعبة اليوم: "اختراق الملف السري" (Mini CTF)</h2>
+
+  <div class="game">
+    <h3>🏴 السيناريو</h3>
+    <p>المدرّس خبّأ <b>3 ملفات سرية</b> في المجلد المشترك <code class="inline">/home/shared/</code>، كل ملف فيه جزء من <b>الرمز السري</b> لعلامة 🏆:</p>
+    <div class="step" style="margin-top:14px"><div class="n">1</div><div class="content"><h4>ملف 1 — محمي غلط!</h4><p>صلاحياته مفتوحة للكل... بس متخفي! استخدم <code class="inline">ls -la</code> عشان تلاقيه (المخفي يبدأ بنقطة <code class="inline">.</code>)</p></div></div>
+    <div class="step"><div class="n">2</div><div class="content"><h4>ملف 2 — مقفول بالصلاحيات</h4><p>لو حاولت تقرأه هتظهرلك رسالة <code class="inline">Permission denied</code> ❌ — الحل: <code class="inline">sudo cat</code>! 🗝️</p></div></div>
+    <div class="step"><div class="n">3</div><div class="content"><h4>ملف 3 — ملف سكريبت مخفي</h4><p>صلاحيته <code class="inline">600</code> ومفيهوش x — لازم تفكر: أقرأه بـ <code class="inline">cat</code> وألاقي جواه الأمر اللي بيديني الرمز الأخير!</p></div></div>
+    <p style="margin-top:14px; color:var(--warn)"><b>🏆 الفريق الأول يجمع الرمز الكامل = فائز اليوم!</b></p>
+  </div>
+
+  <div class="callout info">
+    <div class="icon">🎯</div>
+    <div><b>الدرس الأمني من اللعبة:</b> انتبهتوا إزاي <b>الصلاحيات الغلط</b> (ملف 1) بتحول السر لأكلة؟ ده اسمه في المجال <b>File Permission Misconfiguration</b> — وده من أشهر الثغرات اللي بيلقاها الاختصاصيين في اختبارات الاختراق الحقيقية! انتوا عملتوا أول ثغرة اكتشاف في حياتكم 🥇</div>
+  </div>
+</section>
+
+<!-- ========== 5: المحتوى التفاعلي ========== -->
+<section>
+  <h2><span class="num">5</span> 🧠 اختبر نفسك — كويز تفاعلي (اضغط على الإجابة!)</h2>
+
+  <div class="quiz" id="q1">
+    <div class="q">❓ سؤال 1: في Terminal، رمز <code class="inline">#</code> آخر السطر معناه إيه؟</div>
+    <div class="options">
+      <button onclick="ans(this,'q1',false)">مستخدم عادي</button>
+      <button onclick="ans(this,'q1',true)">أنا root — الملك 👑</button>
+      <button onclick="ans(this,'q1',false)">الملف مقفول</button>
+    </div>
+    <div class="feedback" id="f1"></div>
+  </div>
+
+  <div class="quiz" id="q2">
+    <div class="q">❓ سؤال 2: صلاحية <code class="inline">r--</code> تعادل قوام رقم كام؟</div>
+    <div class="options">
+      <button onclick="ans(this,'q2',false)">7</button>
+      <button onclick="ans(this,'q2',true)">4</button>
+      <button onclick="ans(this,'q2',false)">6</button>
+    </div>
+    <div class="feedback" id="f2"></div>
+  </div>
+
+  <div class="quiz" id="q3">
+    <div class="q">❓ سؤال 3: عايز تقرأ ملف صاحبه مش انت — إيه الحل المحترف؟</div>
+    <div class="options">
+      <button onclick="ans(this,'q3',false)">امسح الملف 😈</button>
+      <button onclick="ans(this,'q3',false)">صيّح</button>
+      <button onclick="ans(this,'q3',true)">sudo cat filename 🗝️</button>
+    </div>
+    <div class="feedback" id="f3"></div>
+  </div>
+
+  <div class="quiz" id="q4">
+    <div class="q">❓ سؤال 4: <code class="inline">chmod 777</code> على ملف سري — قرار آمن؟</div>
+    <div class="options">
+      <button onclick="ans(this,'q4',false)">آه تمام جدًا</button>
+      <button onclick="ans(this,'q4',true)">كارثة أمنية! الكل يقرأ ويكتب ويشغل 🚨</button>
+      <button onclick="ans(this,'q4',false)">هيخلي الجهاز أسرع</button>
+    </div>
+    <div class="feedback" id="f4"></div>
+  </div>
+</section>
+
+<!-- ========== التمارين ========== -->
+<section>
+  <h2><span class="num">🛠️</span> التمارين العملية — 50 دقيقة</h2>
+
+  <div class="card green">
+    <h3>🏋️ تمرين 1: سجل الأسرار المشفر (20 دقيقة)</h3>
+    <div class="terminal"><div class="term-bar"><div class="dot red"></div><div class="dot yel"></div><div class="dot grn"></div></div>
+      <div class="term-body">
+        <div class="line"><span class="prompt">$</span> <span class="cmd">cd ~/SunshineLab/Level3/Security</span></div>
+        <div class="line"><span class="prompt">$</span> <span class="cmd">nano secret_plan.txt</span>     <span class="comment"># اكتب فيه خطة مشروعك السرية</span></div>
+        <div class="line"><span class="prompt">$</span> <span class="cmd">chmod 600 secret_plan.txt</span>  <span class="comment"># اقفله على نفسك بس</span></div>
+        <div class="line"><span class="prompt">$</span> <span class="cmd">ls -l secret_plan.txt</span>      <span class="comment"># اتأكد: rw-------</span></div>
+        <div class="line"><span class="prompt">$</span> <span class="cmd">cp secret_plan.txt shared.txt</span></div>
+        <div class="line"><span class="prompt">$</span> <span class="cmd">chmod 644 shared.txt</span>       <span class="comment"># نسخة الكل تقدر تقراها</span></div>
+        <div class="line"><span class="prompt">$</span> <span class="cmd">ls -l shared.txt</span>           <span class="comment"># اتأكد: rw-r--r--</span></div>
+      </div>
+    </div>
+    <p>🎯 <b>الهدف:</b> نفس الملفين، صلاحيات مختلفة تمامًا — أنت اللي بتتحكم!</p>
+  </div>
+
+  <div class="card green">
+    <h3>🏋️ تمرين 2: لعبة الوسادة الساخنة 🥔 (15 دقيقة)</h3>
+    <p>اثنان اثنين على الجهاز:</p>
+    <table>
+      <tr><th>اللاعب A</th><th>اللاعب B</th></tr>
+      <tr><td>ينشئ ملف <code class="inline">puzzle.txt</code> ويقفله بـ <code class="inline">chmod 600</code></td><td>يحاول يقراه بكل الطرق 😈</td></tr>
+      <tr><td>بعد 5 دقايق يعطيه "مفتاح sudo"</td><td>يفتحه بـ <code class="inline">sudo cat</code> ويحل اللغز اللي جواه!</td></tr>
+    </table>
+    <p>⚡ <b>التبديل:</b> بعدها بيبادلوا الأدوار — وكل لغز يحلها الطالب التاني.</p>
+  </div>
+
+  <div class="card green">
+    <h3>🏋️ تمرين 3: تقرير المحلل الأمني 📋 (15 دقيقة)</h3>
+    <p>افحص مجلد <code class="inline">/home/shared/</code> (اللي حط فيه المدرّس ملفات اللعبة) وأجب في ملف <code class="inline">audit_report.txt</code>:</p>
+    <ol style="margin:8px 24px">
+      <li>اعمل <code class="inline">ls -la</code> واكتب جدول: اسم الملف / صلاحياته / التقييم (آمن ✅ أو خطر 🚨)</li>
+      <li>حدد الملفات اللي صلاحياتها "مفتوحة زيادة" واقترح لها <code class="inline">chmod</code> مناسب</li>
+      <li>اكتب سطرين: إيه أكبر خطر لقيتيه وإيه الحل؟</li>
+    </ol>
+    <p>🎁 <b>ده أول Audit Report حقيقي تعمله في حياتك!</b></p>
+  </div>
+</section>
+
+<!-- ========== الخلاصة ========== -->
+<section>
+  <h2><span class="num">📌</span> خلاصة المحاضرة + الواجب</h2>
+
+  <div class="recap-grid">
+    <div class="recap"><b>👤 المستخدم العادي</b> — محدود بصلاحياته، وده حماية مش قيد</div>
+    <div class="recap"><b>👑 root</b> — قوة مطلقة وخطر مطلق، ما بنقعدوش فيه</div>
+    <div class="recap"><b>🔑 sudo</b> — مفتاح مؤقت بصلاحيات root عند الحاجة فقط</div>
+    <div class="recap"><b>🔓 rwx</b> — قراءة/كتابة/تنفيذ لـ 3 فئات: صاحب، مجموعة، باقيين</div>
+    <div class="recap"><b>🧮 الأرقام</b> — r=4, w=2, x=1 وجمع: 777 و600 و644 و700</div>
+    <div class="recap"><b>🛡️ Least Privilege</b> — أقل صلاحية ممكنة = أمان أعلى</div>
+  </div>
+
+  <div class="card purple">
+    <h3>📝 الواجب المنزلي</h3>
+    <ol style="margin:8px 24px">
+      <li>أنشئ 3 ملفات وأعطيهم الصلاحيات دي: <code class="inline">700</code> و<code class="inline">644</code> و<code class="inline">755</code> — وصور شاشة <code class="inline">ls -l</code> للنتيجة</li>
+      <li>اكتب في ملف: "يعني إيه 755 بالعربي؟" (لمين كل رقم؟ وليه مناسب للسكريبتات؟)</li>
+      <li>❓ <b>سؤال التفكير (تحدي):</b> المجلدات لازم يكون فيها صلاحية <b>x</b> عشان تدخلها — ليه رأيك؟ بحث Google مقبول ومشجع! 🔍</li>
+      <li>🎁 <b>اختياري ممتع:</b> اسأل حد كبير في عائلتك عن كلمة السر بتاعته — هو مكتوبة على ورقة ملزوقة على الشاشة؟ 😄 صمم له "نصيحة أمنية" منك كخبير مبتدئ!</li>
+    </ol>
+  </div>
+
+  <div class="callout success">
+    <div class="icon">🔮</div>
+    <div><b>المحاضرة الجاية:</b> بننتقل لعالم الشبكات من جوه Linux — هتعرف عنوانك في الشبكة، وتحلل مسار البيانات، وترسم <b>خريطة شبكة اللاب كاملة</b> زي الـ Network Analysts الحقيقيين! 🗺️</div>
+  </div>
+</section>
+
+<footer>
+  <p>☀️ <span class="brand">Sunshine T Academy</span> — Level 3: Kali Linux Fundamentals</p>
+  <p>Lecture 2 of 7 | المحاضرة الثالثة: الشبكات من جوه Linux 🌐</p>
+</footer>
+
+<script>
+function ans(btn, q, correct){
+  const quiz = document.getElementById(q);
+  quiz.querySelectorAll('button').forEach(b => b.classList.remove('correct','wrong'));
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  const fb = quiz.querySelector('.feedback');
+  fb.style.display = 'block';
+  if(correct){
+    fb.innerHTML = '<span style="color:var(--accent)">✅ إجابة صحيحة! انت فهمت الموضوع 👏</span>';
+  } else {
+    fb.innerHTML = '<span style="color:#ff7b72">❌ مش دي! رجع للمحتوى فوق وجرب تاني 💪</span>';
+  }
+}
+</script>
+
+</div>
+</body>
+</html>
